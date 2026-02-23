@@ -42,45 +42,38 @@ function init_game(level)
   in_game = true
   gameover = false
 
-  head={x=16, y=32}
+  head={x=48, y=64}
   tail={}
-  add(tail, {x=16,y=24})
-  add(tail, {x=24,y=24})
-  add(tail, {x=32,y=24})
-  snake_direction={x=0, y=8}
+  add(tail, {x=40,y=64})
+  add(tail, {x=32,y=64})
+  add(tail, {x=24,y=64})
+  snake_direction={x=8, y=0}
   speed=11
   move_counter=0
   score=0
 
-  walls={} -- level 1
-  if level == 2 then
-    for i=0,120,8 do
-      -- top line of walls
-      add(walls, {x=i, y=gameboard.top})
-    end
-    for i=0,120,8 do
-      -- bottom line of walls
-      add(walls, {x=i, y=gameboard.bottom-7})
-    end
-  elseif level == 3 then
-    for i=0,120,8 do
-      -- top line of walls
-      add(walls, {x=i, y=gameboard.top})
-    end
-    for i=0,120,8 do
-      -- bottom line of walls
-      add(walls, {x=i, y=gameboard.bottom-7})
-    end
-    for i=8,112,8 do
-      -- left line of walls
-      add(walls, {x=gameboard.left, y=i})
-    end
-    for i=8,112,8 do
-      -- right line of walls
-      add(walls, {x=gameboard.right-7, y=i})
-    end
-  elseif level == 4 then
+  walls={} -- level 1 - Easy
+  if level == 2 then -- Medium
+    for i=0,120,8 do add(walls, {x=i, y=gameboard.top}) end -- top line of walls
+    for i=0,120,8 do add(walls, {x=i, y=gameboard.bottom-7}) end -- bottom line of walls
+  elseif level == 3 then -- Hard
+    for i=0,120,8 do add(walls, {x=i, y=gameboard.top}) end -- top line of walls
+    for i=0,120,8 do add(walls, {x=i, y=gameboard.bottom-7}) end -- bottom line of walls
+    for i=8,112,8 do add(walls, {x=gameboard.left, y=i}) end -- left line of walls
+    for i=8,112,8 do add(walls, {x=gameboard.right-7, y=i}) end -- right line of walls
+  elseif level == 4 then -- Labyrinth
+    -- top-left corner
+    add(walls, {x=gameboard.left, y=gameboard.top})
+    add(walls, {x=gameboard.left, y=gameboard.top+8})
+    add(walls, {x=gameboard.left+8, y=gameboard.top})
+    add(walls, {x=gameboard.left+16, y=gameboard.top})
 
+    for i=56,120,8 do add(walls, {x=i, y=gameboard.top}) end -- top-right horizontal line
+    for i=gameboard.top,40,8 do add(walls, {x=48, y=i}) end -- top vertical line
+    for i=0,48,8 do add(walls, {x=i, y=48}) end -- left-middle horizontal line
+    for i=80,120,8 do add(walls, {x=i, y=48}) end -- right-middle horizontal line
+    for i=0,120,8 do add(walls, {x=i, y=88}) end -- lower horizontal line
+    for i=96,120,8 do add(walls,{x=64, y=i}) end -- bottom vertical line
   end
 
   generate_fruit()
@@ -105,7 +98,7 @@ function _init()
 
   -- Menu
   menu = {
-    elements={"easy", "medium", "hard", "labirinth"},
+    elements={"easy", "medium", "hard", "labyrinth"},
     selected=1,
     bg_col=11, -- light green
     bg_sel_col=11,
