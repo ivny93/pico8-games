@@ -20,12 +20,13 @@ function update_menu(menu)
     if btnp(🅾️) or btnp(❎) then
         return menu.selected
     end
-    if btnp(⬆️) and menu.selected > 1 then -- up
-        menu.selected -= 1
-        return nil
+    if btnp(⬆️) then -- up
+        if menu.selected > 1 then menu.selected -= 1
+        else menu.selected = #menu.elements end
     end
-    if btnp(⬇️) and menu.selected < #menu.elements then -- down
-        menu.selected += 1
-        return nil
+    if btnp(⬇️) then -- down
+        if menu.selected < #menu.elements then menu.selected += 1
+        else menu.selected = 1 end
     end
+    return nil
 end

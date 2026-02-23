@@ -73,7 +73,7 @@ function init_game(level)
     for i=0,48,8 do add(walls, {x=i, y=48}) end -- left-middle horizontal line
     for i=80,120,8 do add(walls, {x=i, y=48}) end -- right-middle horizontal line
     for i=0,120,8 do add(walls, {x=i, y=88}) end -- lower horizontal line
-    for i=96,120,8 do add(walls,{x=64, y=i}) end -- bottom vertical line
+    for i=96,120,8 do add(walls,{x=48, y=i}) end -- bottom vertical line
   end
 
   generate_fruit()
@@ -98,7 +98,7 @@ function _init()
 
   -- Menu
   menu = {
-    elements={"easy", "medium", "hard", "labyrinth"},
+    elements={"easy", "tunnel", "box", "labyrinth"},
     selected=1,
     bg_col=11, -- light green
     bg_sel_col=11,
@@ -127,19 +127,19 @@ function update_game()
   -- only if there is not a tail block in the next cell
   -- the head should go
   --    left
-  if btnp(⬅️) and tail[1].x >= head.x then
+  if btn(⬅️) and tail[1].x >= head.x then
     snake_direction={x=-8, y=0}
   end
   --    right
-  if btnp(➡️) and tail[1].x <= head.x then
+  if btn(➡️) and tail[1].x <= head.x then
     snake_direction={x=8, y=0}
   end
   --    up
-  if btnp(⬆️) and tail[1].y >= head.y then
+  if btn(⬆️) and tail[1].y >= head.y then
     snake_direction={x=0, y=-8}
   end
   --    down
-  if btnp(⬇️) and tail[1].y <= head.y then
+  if btn(⬇️) and tail[1].y <= head.y then
     snake_direction={x=0, y=8}
   end
   -- update the position
@@ -208,12 +208,14 @@ function update_game()
 end
 
 function _update()
-  if in_game then
+  if gameover then
+    if btn(🅾️) or btn(❎) then gameover = false end
+  elseif in_game then
     update_game()
     if gameover then
       in_game = false
     end
-  else
+  else -- Title screen
     s = update_menu(menu)
     if s then
       init_game(s)
@@ -305,16 +307,13 @@ end
 
 function _draw()
   -- draw board
+  map()
   rectfill(header_rect.left, header_rect.top, header_rect.right, header_rect.bottom, header_color)
-  rectfill(gameboard.left, gameboard.top, gameboard.right, gameboard.bottom, bg_color)
   
-  -- gameover check
   if gameover then
     print("gameover", 46, 40, 8)
-    print("score: "..score, 46, 50, 12)
-  end
-
-  if in_game then
+    print("score: "..score, 46, 50, 1)
+  elseif in_game then
     -- print points
     print("score: "..score, 1, 1, 12)
 
@@ -327,9 +326,9 @@ function _draw()
     foreach (walls, function (wall)
       spr(wall_sprite, wall.x, wall.y)
     end)
-  else
-    spr(logo_sprite, 52, 20, 3, 2)
-    print("select game mode:", 29, 84, 1)
-    draw_menu(menu, {x=45,y=92})
+  else -- Title screen
+    spr(logo_sprite, 48, 20, 4, 5)
+    print("select game mode:", 29, 64, 1)
+    draw_menu(menu, {x=45,y=72})
   end
 end
