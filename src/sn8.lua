@@ -7,12 +7,10 @@ function generate_fruit()
   fruit={}
   fruit.kind = red_fruit_sprite -- the default
   golden_fruit_counter = 0
-  if score > 0 and score % 9 == 0 then
-    -- Sometimes a golden fruit might be generated
-    if (flr(rnd(9)) +1) % 3 == 0 then
-      fruit.kind = golden_fruit_sprite
-      golden_fruit_counter = 150 -- Roughly 5 seconds to get the golden fruit
-    end
+  if flr(rnd(10)) == 0 then
+    -- There's a 1 in 10 chance that a golden fruit is generated
+    fruit.kind = golden_fruit_sprite
+    golden_fruit_counter = 150 -- Roughly 5 seconds to get the golden fruit
   end
   local gen_pos = function()
     -- Randomizes the position of the next fruit
@@ -41,6 +39,7 @@ end
 function init_game(level)
   in_game = true
   gameover = false
+  palt(0, false)
 
   head={x=48, y=64}
   tail={}
@@ -55,12 +54,12 @@ function init_game(level)
   walls={} -- level 1 - Easy
   if level == 2 then -- Medium
     for i=0,120,8 do add(walls, {x=i, y=gameboard.top}) end -- top line of walls
-    for i=0,120,8 do add(walls, {x=i, y=gameboard.bottom-7}) end -- bottom line of walls
+    for i=0,120,8 do add(walls, {x=i, y=gameboard.bottom}) end -- bottom line of walls
   elseif level == 3 then -- Hard
     for i=0,120,8 do add(walls, {x=i, y=gameboard.top}) end -- top line of walls
-    for i=0,120,8 do add(walls, {x=i, y=gameboard.bottom-7}) end -- bottom line of walls
+    for i=0,120,8 do add(walls, {x=i, y=gameboard.bottom}) end -- bottom line of walls
     for i=8,112,8 do add(walls, {x=gameboard.left, y=i}) end -- left line of walls
-    for i=8,112,8 do add(walls, {x=gameboard.right-7, y=i}) end -- right line of walls
+    for i=8,112,8 do add(walls, {x=gameboard.right, y=i}) end -- right line of walls
   elseif level == 4 then -- Labyrinth
     -- top-left corner
     add(walls, {x=gameboard.left, y=gameboard.top})
@@ -81,6 +80,7 @@ end
 
 function _init()
   -- Graphics definitions
+  block_size = 8
   logo_sprite=10
   snake_head_h_sprite = 0
   snake_head_v_sprite = 7
@@ -107,7 +107,7 @@ function _init()
   }
 
   -- Game components
-  gameboard={left= 0, top=8, right=127, bottom=127}
+  gameboard={left= 0, top=8, right=120, bottom=120}
   gameover = false
   in_game = false
 end
@@ -163,9 +163,9 @@ function update_game()
     -- update head position
     head.x += snake_direction.x
     head.y += snake_direction.y
-    if head.x < gameboard.left then head.x = gameboard.right - 7 end
+    if head.x < gameboard.left then head.x = gameboard.right end
     if head.x > gameboard.right then head.x = gameboard.left end
-    if head.y < gameboard.top then head.y = gameboard.bottom - 7 end
+    if head.y < gameboard.top then head.y = gameboard.bottom end
     if head.y > gameboard.bottom then head.y = gameboard.top end
     -- add new part of tail
     if new_tail then add(tail, new_tail) end
@@ -224,65 +224,74 @@ function _update()
 end
 
 function draw_snake()
-  if head.y == tail[1].y and head.x < tail[1].x then
+
+  local function is_left(pos, ref_pos)
+    return (pos.x == ref_pos.x - 8) or (pos.x == gameboard.right and ref_pos.x == gameboard.left)
+  end
+  local function is_right(pos, ref_pos)
+    return (pos.x == ref_pos.x + 8) or (pos.x == gameboard.left and ref_pos.x == gameboard.right)
+  end
+  local function is_up(pos, ref_pos)
+    return (pos.y == ref_pos.y - 8) or (pos.y == gameboard.bottom and ref_pos.y == gameboard.top)
+  end
+  local function is_down(pos, ref_pos)
+    return (pos.y == ref_pos.y + 8) or (pos.y == gameboard.top and ref_pos.y == gameboard.bottom)
+  end
+
+  -- Determines the head's orientation and draws it
+  if is_left(head, tail[1]) then
     spr(snake_head_h_sprite, head.x, head.y) -- left
-  elseif head.y == tail[1].y and head.x > tail[1].x then
+  elseif is_right(head, tail[1]) then
     spr(snake_head_h_sprite, head.x, head.y, 1, 1, true, false) -- right
-  elseif head.x == tail[1].x and head.y < tail[1].y then
+  elseif is_up(head, tail[1]) then
     spr(snake_head_v_sprite, head.x, head.y) -- up
-  elseif head.x == tail[1].x and head.y > tail[1].y then
+  elseif is_down(head, tail[1]) then
     spr(snake_head_v_sprite, head.x, head.y, 1, 1, false, true) -- down
   end
 
+  -- Determines each body block's orientation and draws it
   local function draw_snake_body(pos, prev_pos, next_pos)
-    if prev_pos.y == pos.y then
-      -- previous on the left/right
-      if next_pos.y == pos.y then
-        -- horizontal
-        spr(snake_body_h_sprite, pos.x, pos.y)
-      else
-        if prev_pos.x < pos.x and next_pos.y > pos.y then
-          -- H T
-          --   T
-          spr(snake_body_d_sprite, pos.x, pos.y)
-        elseif prev_pos.x < pos.x and next_pos.y < pos.y then
-          --   T
-          -- H T
-          spr(snake_body_d_sprite, pos.x, pos.y, 1, 1, false, true)
-        elseif prev_pos.x > pos.x and next_pos.y > pos.y then
-          -- T H
-          -- T
-          spr(snake_body_d_sprite, pos.x, pos.y, 1, 1, true, false)
-        elseif prev_pos.x > pos.x and next_pos.y < pos.y then
-          -- T
-          -- T H
-          spr(snake_body_d_sprite, pos.x, pos.y, 1, 1, true, true)
-        end
-      end
+    if is_right(pos, prev_pos) and is_up(pos, next_pos) then
+      -- H T
+      --   T
+      spr(snake_body_d_sprite, pos.x, pos.y)
+    elseif is_right(pos, prev_pos) and is_down(pos, next_pos) then
+      --   T
+      -- H T
+      spr(snake_body_d_sprite, pos.x, pos.y, 1, 1, false, true)
+    elseif is_left(pos, prev_pos) and is_up(pos, next_pos) then
+      -- T H
+      -- T
+      spr(snake_body_d_sprite, pos.x, pos.y, 1, 1, true, false)
+    elseif is_left(pos, prev_pos) and is_down(pos, next_pos) then
+      -- T
+      -- T H
+      spr(snake_body_d_sprite, pos.x, pos.y, 1, 1, true, true)
+    elseif is_up(pos, prev_pos) and is_right(pos, next_pos) then
+      -- T T
+      --   H
+      spr(snake_body_d_sprite, pos.x, pos.y)
+    elseif is_up(pos, prev_pos) and is_left(pos, next_pos) then
+      -- T T
+      -- H
+      spr(snake_body_d_sprite, pos.x, pos.y, 1, 1, true, false)
+    elseif is_down(pos, prev_pos) and is_right(pos, next_pos) then
+      --   H
+      -- T T
+      spr(snake_body_d_sprite, pos.x, pos.y, 1, 1, false, true)
+    elseif is_down(pos, prev_pos) and is_left(pos, next_pos) then
+      --   H
+      -- T T
+      spr(snake_body_d_sprite, pos.x, pos.y, 1, 1, true, true)
+    elseif not (is_left(pos, prev_pos) or is_right(pos, prev_pos) or is_left(pos, next_pos) or is_right(pos, next_pos)) then
+      -- H    T
+      -- T    T
+      -- T    H
+      spr(snake_body_v_sprite, pos.x, pos.y)
     else
-      -- previous up or down
-      if next_pos.x == pos.x then
-        -- vertical
-        spr(snake_body_v_sprite, pos.x, pos.y)
-      else
-        if prev_pos.y > pos.y and next_pos.x < pos.x then
-          -- T T
-          --   H
-          spr(snake_body_d_sprite, pos.x, pos.y)
-        elseif prev_pos.y < pos.y and next_pos.x < pos.x then
-          --   H
-          -- T T
-          spr(snake_body_d_sprite, pos.x, pos.y, 1, 1, false, true)
-        elseif prev_pos.y > pos.y and next_pos.x > pos.x then
-          -- T T
-          -- H
-          spr(snake_body_d_sprite, pos.x, pos.y, 1, 1, true, false)
-        elseif prev_pos.y < pos.y and next_pos.x > pos.x then
-          -- H
-          -- T T
-          spr(snake_body_d_sprite, pos.x, pos.y, 1, 1, true, true)
-        end
-      end
+      -- H T T
+      -- T T H
+      spr(snake_body_h_sprite, pos.x, pos.y)
     end
   end
   -- First tail block
@@ -291,14 +300,15 @@ function draw_snake()
   for i=2, #tail-1 do
     draw_snake_body(tail[i], tail[i-1], tail[i+1])
   end
+
   -- Last tail block
   tail_end = tail[#tail]
   tail_prev = tail[#tail-1]
-  if tail_end.y == tail_prev.y and tail_end.x > tail_prev.x then
+  if is_right(tail_end, tail_prev) then
     spr(snake_tail_h_sprite, tail_end.x, tail_end.y)
-  elseif tail_end.y == tail_prev.y and tail_end.x < tail_prev.x then
+  elseif is_left(tail_end, tail_prev) then
     spr(snake_tail_h_sprite, tail_end.x, tail_end.y, 1, 1, true, false)
-  elseif tail_end.x == tail_prev.x and tail_end.y > tail_prev.y then
+  elseif is_down(tail_end, tail_prev) then
     spr(snake_tail_v_sprite, tail_end.x, tail_end.y)
   else
     spr(snake_tail_v_sprite, tail_end.x, tail_end.y, 1, 1, false, true)
@@ -327,7 +337,7 @@ function _draw()
       spr(wall_sprite, wall.x, wall.y)
     end)
   else -- Title screen
-    spr(logo_sprite, 48, 20, 4, 5)
+    spr(logo_sprite, 48, 20, 4, 4)
     print("select game mode:", 29, 64, 1)
     draw_menu(menu, {x=45,y=72})
   end
