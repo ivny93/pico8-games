@@ -39,7 +39,7 @@ end
 function init_game(level)
   in_game = true
   gameover = false
-  palt(0, false)
+  current_level = level
 
   head={x=48, y=64}
   tail={}
@@ -80,6 +80,7 @@ end
 
 function _init()
   -- Graphics definitions
+  palt(0, false)
   block_size = 8
   logo_sprite=10
   snake_head_h_sprite = 0
@@ -98,7 +99,7 @@ function _init()
 
   -- Menu
   menu = {
-    elements={"easy", "tunnel", "box", "labyrinth"},
+    elements={"classic", "tunnel", "box", "labyrinth"},
     selected=1,
     bg_col=11, -- light green
     bg_sel_col=11,
@@ -110,6 +111,16 @@ function _init()
   gameboard={left= 0, top=8, right=120, bottom=120}
   gameover = false
   in_game = false
+  current_level = 0
+
+  -- Load Highscores
+  highscores = { 0, 0, 0, 0 }
+  if cartdata("sn8_highscores") then
+    highscores[1] = dget(0)
+    highscores[2] = dget(1)
+    highscores[3] = dget(2)
+    highscores[4] = dget(3)
+  end
 end
 
 function copy_pos(source, dest)
@@ -209,16 +220,22 @@ end
 
 function _update()
   if gameover then
-    if btn(🅾️) or btn(❎) then gameover = false end
+    if btn(🅾️) or btn(❎) then
+      if score > highscores[current_level] then
+        highscores[current_level] = score
+        dset(current_level - 1, score)
+      end
+      gameover = false
+  end
   elseif in_game then
     update_game()
     if gameover then
       in_game = false
     end
   else -- Title screen
-    s = update_menu(menu)
-    if s then
-      init_game(s)
+    local sel = update_menu(menu)
+    if sel then
+      init_game(sel)
     end
   end
 end
@@ -340,5 +357,6 @@ function _draw()
     spr(logo_sprite, 48, 20, 4, 4)
     print("select game mode:", 29, 64, 1)
     draw_menu(menu, {x=45,y=72})
+    print("highscore: "..highscores[menu.selected], 1, 1, 12)
   end
 end
