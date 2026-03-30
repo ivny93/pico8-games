@@ -360,7 +360,7 @@ function _draw()
     end)
   else -- Title screen
     spr(logo_sprite, 48, 20, 4, 4)
-    print("select game mode:", 29, 64, 1)
+    print("select game mode:", 30, 60, 1)
     draw_menu(menu, {x=45,y=72})
     print("highscore: "..highscores[menu.selected], 1, 1, 12)
   end
