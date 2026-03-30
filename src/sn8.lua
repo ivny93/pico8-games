@@ -2,12 +2,12 @@ function hit(p1, p2)
   return p1.x==p2.x and p1.y==p2.y
 end
 
-function generate_fruit()
+function generate_fruit(golden_chance)
   -- The fruit kind is used also to determine its sprite
   fruit={}
   fruit.kind = red_fruit_sprite -- the default
   golden_fruit_counter = 0
-  if flr(rnd(10)) == 0 then
+  if golden_chance > 0 and flr(rnd(golden_chance)) == 0 then
     -- There's a 1 in 10 chance that a golden fruit is generated
     fruit.kind = golden_fruit_sprite
     golden_fruit_counter = 150 -- Roughly 5 seconds to get the golden fruit
@@ -75,7 +75,7 @@ function init_game(level)
     for i=96,120,8 do add(walls,{x=48, y=i}) end -- bottom vertical line
   end
 
-  generate_fruit()
+  generate_fruit(0)
 end
 
 function _init()
@@ -126,6 +126,10 @@ end
 function copy_pos(source, dest)
   dest.x = source.x
   dest.y = source.y
+end
+
+function is_highscore()
+  return score > highscores[current_level]
 end
 
 function update_game()
@@ -201,7 +205,7 @@ function update_game()
     score += ((fruit.kind == red_fruit_sprite)
       and 3 or 9
     )
-    generate_fruit()
+    generate_fruit(10)
     -- The speed value is reduced at each tick by 0.5
     -- This way it is increased each 2 ticks
     -- Its value cannot go below 2
@@ -214,14 +218,14 @@ function update_game()
   -- a new fruit is generated
   if golden_fruit_counter > 0 then
     golden_fruit_counter -= 1
-    if golden_fruit_counter == 0 then generate_fruit() end
+    if golden_fruit_counter == 0 then generate_fruit(0) end
   end
 end
 
 function _update()
   if gameover then
     if btn(🅾️) or btn(❎) then
-      if score > highscores[current_level] then
+      if is_highscore() then
         highscores[current_level] = score
         dset(current_level - 1, score)
       end
@@ -340,6 +344,7 @@ function _draw()
   if gameover then
     print("gameover", 46, 40, 8)
     print("score: "..score, 46, 50, 1)
+    if is_highscore() then print("new highscore!", 36, 60, 8) end
   elseif in_game then
     -- print points
     print("score: "..score, 1, 1, 12)
