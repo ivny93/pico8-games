@@ -18,15 +18,18 @@ end
 
 function update_menu(menu)
     if btnp(🅾️) or btnp(❎) then
+        if menu.sfx then sfx(menu.sfx) end  
         return menu.selected
     end
     if btnp(⬆️) then -- up
         if menu.selected > 1 then menu.selected -= 1
         else menu.selected = #menu.elements end
+        if menu.sfx then sfx(menu.sfx) end
     end
     if btnp(⬇️) then -- down
         if menu.selected < #menu.elements then menu.selected += 1
         else menu.selected = 1 end
+        if menu.sfx then sfx(menu.sfx) end
     end
     return nil
 end

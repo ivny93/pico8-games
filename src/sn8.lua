@@ -104,7 +104,8 @@ function _init()
     bg_col=11, -- light green
     bg_sel_col=11,
     font_col=1, -- dark blue
-    font_sel_col=8 -- red
+    font_sel_col=8, -- red
+    sfx=4
   }
 
   -- Game components
@@ -190,11 +191,13 @@ function update_game()
   foreach(tail, function(pos)
     if hit(head, pos) then
       gameover = true
+      sfx(is_highscore() and 3 or 2)
     end
   end)
   foreach(walls, function(pos)
     if hit(head, pos) then
       gameover = true
+      sfx(is_highscore() and 3 or 2)
     end
   end)
 
@@ -205,7 +208,8 @@ function update_game()
     score += ((fruit.kind == red_fruit_sprite)
       and 3 or 9
     )
-    generate_fruit(10)
+    sfx(fruit.kind == red_fruit_sprite and 0 or 1)
+    generate_fruit(5)
     -- The speed value is reduced at each tick by 0.5
     -- This way it is increased each 2 ticks
     -- Its value cannot go below 2
@@ -218,7 +222,10 @@ function update_game()
   -- a new fruit is generated
   if golden_fruit_counter > 0 then
     golden_fruit_counter -= 1
-    if golden_fruit_counter == 0 then generate_fruit(0) end
+    if golden_fruit_counter == 0 then
+      generate_fruit(0)
+      sfx(5)
+    end
   end
 end
 
