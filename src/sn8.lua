@@ -78,11 +78,18 @@ function init_game(level)
   generate_fruit(0)
 end
 
+function reset_highscores()
+  highscores = {0, 0, 0, 0}
+  dset(0, 0)
+  dset(1, 0)
+  dset(2, 0)
+  dset(3, 0)
+end
+
 function _init()
   -- Graphics definitions
   palt(0, false)
   block_size = 8
-  logo_sprite=10
   snake_head_h_sprite = 0
   snake_head_v_sprite = 7
   snake_body_h_sprite = 1
@@ -93,9 +100,22 @@ function _init()
   red_fruit_sprite = 2
   golden_fruit_sprite = 3
   wall_sprite = 5
+  logo_sprite=10 -- 4 sprites x 4 sprites
+  -- sprite 14: empty grass
+  -- sprite 15: horizontal tall grass
+  -- sprite 16: verical tall grass
   header_color = 1 -- dark blue
   bg_color = 11 -- light green
   header_rect={left=0, top=0, right=127, bottom=7}
+
+  -- Audio definitions
+  red_eaten_sfx = 0
+  golden_eaten_sfx = 1
+  gameover_sfx = 2
+  gameover_highscore_sfx = 3
+  menu_button_sfx = 4
+  golden_expired_sfx = 5
+  snake_turn_sfx = 6 
 
   -- Menu
   menu = {
@@ -122,6 +142,7 @@ function _init()
     highscores[3] = dget(2)
     highscores[4] = dget(3)
   end
+  menuitem(1, "reset highscores", reset_highscores)
 end
 
 function copy_pos(source, dest)
@@ -145,18 +166,22 @@ function update_game()
   --    left
   if btn(⬅️) and tail[1].x >= head.x then
     snake_direction={x=-8, y=0}
+    sfx(snake_turn_sfx)
   end
   --    right
   if btn(➡️) and tail[1].x <= head.x then
     snake_direction={x=8, y=0}
+    sfx(snake_turn_sfx)
   end
   --    up
   if btn(⬆️) and tail[1].y >= head.y then
     snake_direction={x=0, y=-8}
+    sfx(snake_turn_sfx)
   end
   --    down
   if btn(⬇️) and tail[1].y <= head.y then
     snake_direction={x=0, y=8}
+    sfx(snake_turn_sfx)
   end
   -- update the position
   -- Increases the move counter
@@ -191,13 +216,13 @@ function update_game()
   foreach(tail, function(pos)
     if hit(head, pos) then
       gameover = true
-      sfx(is_highscore() and 3 or 2)
+      sfx(is_highscore() and gameover_highscore_sfx or gameover_sfx)
     end
   end)
   foreach(walls, function(pos)
     if hit(head, pos) then
       gameover = true
-      sfx(is_highscore() and 3 or 2)
+      sfx(is_highscore() and gameover_highscore_sfx or gameover_sfx)
     end
   end)
 
@@ -208,7 +233,7 @@ function update_game()
     score += ((fruit.kind == red_fruit_sprite)
       and 3 or 9
     )
-    sfx(fruit.kind == red_fruit_sprite and 0 or 1)
+    sfx(fruit.kind == red_fruit_sprite and red_eaten_sfx or golden_eaten_sfx)
     generate_fruit(5)
     -- The speed value is reduced at each tick by 0.5
     -- This way it is increased each 2 ticks
@@ -224,7 +249,7 @@ function update_game()
     golden_fruit_counter -= 1
     if golden_fruit_counter == 0 then
       generate_fruit(0)
-      sfx(5)
+      sfx(golden_expired_sfx)
     end
   end
 end
