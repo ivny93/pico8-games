@@ -2,37 +2,51 @@ function hit(p1, p2)
   return p1.x==p2.x and p1.y==p2.y
 end
 
-function generate_fruit(golden_chance)
-  -- The fruit kind is used also to determine its sprite
-  fruit={}
-  fruit.kind = red_fruit_sprite -- the default
-  golden_fruit_counter = 0
-  if golden_chance > 0 and flr(rnd(golden_chance)) == 0 then
-    -- There's a 1 in 10 chance that a golden fruit is generated
-    fruit.kind = golden_fruit_sprite
-    golden_fruit_counter = 150 -- Roughly 5 seconds to get the golden fruit
-  end
-  local gen_pos = function()
-    -- Randomizes the position of the next fruit
-    -- Each game cell is 8 pixels wide and tall
-    -- The border cells (Those that contain x/y at value 0/127) should be excluded
-    fruit.x=(flr(rnd(13)) + 1)*8
-    fruit.y=(flr(rnd(13)) + 1)*8
-  end
-  local check_pos = function()
-    -- Checks whether the generated position overlaps the snake or a wall
-    if hit(fruit, head) then return true end
+function random_position()
+  -- Randomizes the position of the next fruit
+  -- Each game cell is 8 pixels wide and tall
+  -- The border cells (Those that contain x/y at value 0/127) should be excluded
+  return {
+    x=(flr(rnd(13)) + 1)*8,
+    y=(flr(rnd(13)) + 1)*8
+  }
+end
+function check_positions(pos)
+  -- Checks whether the generated position overlaps the snake or a wall
+    if hit(pos, head) then return true end
     for i=1, #tail do
-      if hit(fruit, tail[i]) then return true end
+      if hit(pos, tail[i]) then return true end
     end
     for i=1, #walls do
-      if hit(fruit, walls[i]) then return true end
+      if hit(pos, walls[i]) then return true end
     end
     return false 
+end
+
+function generate_fruit(golden_chance)
+  local check_pos = function()
+    return check_positions(fruit) or (golden_fruit and hit(fruit, golden_fruit))
   end
-  gen_pos()
+  fruit = random_position()
   while check_pos() do
-    gen_pos()
+    fruit = random_position()
+  end
+  if golden_chance > 0 then generate_golden_fruit(golden_chance) end
+end
+
+function generate_golden_fruit(chance)
+  if golden_fruit then return end -- There cannot be more than one golden fruit
+
+  if chance > 0 and flr(rnd(chance)) == 0 then
+    -- There's a 1 in 10 chance that a golden fruit is generated
+    local check_pos = function()
+      return check_positions(golden_fruit) or hit(golden_fruit, fruit)
+    end
+    golden_fruit = random_position()
+    while check_pos() do
+      golden_fruit = random_position()
+    end
+    golden_fruit_counter = 150 -- Roughly 5 seconds to get the golden fruit
   end
 end
 
@@ -60,7 +74,7 @@ function init_game(level)
     for i=0,120,8 do add(walls, {x=i, y=gameboard.bottom}) end -- bottom line of walls
     for i=8,112,8 do add(walls, {x=gameboard.left, y=i}) end -- left line of walls
     for i=8,112,8 do add(walls, {x=gameboard.right, y=i}) end -- right line of walls
-  elseif level == 4 then -- Labyrinth
+  elseif level == 4 then -- Maze
     -- top-left corner
     add(walls, {x=gameboard.left, y=gameboard.top})
     add(walls, {x=gameboard.left, y=gameboard.top+8})
@@ -75,6 +89,8 @@ function init_game(level)
     for i=96,120,8 do add(walls,{x=48, y=i}) end -- bottom vertical line
   end
 
+  fruit = {}
+  golden_fruit = nil
   generate_fruit(0)
 end
 
@@ -119,7 +135,7 @@ function _init()
 
   -- Menu
   menu = {
-    elements={"classic", "tunnel", "box", "labyrinth"},
+    elements={"classic", "tunnel", "box", "maze"},
     selected=1,
     bg_col=11, -- light green
     bg_sel_col=11,
@@ -229,26 +245,28 @@ function update_game()
   -- fruit check
   if hit(head, fruit) then
     -- Red fruits (sprite 2) grant 3 point
-    -- Gellow fruits (sprite 3) grant 9 point
-    score += ((fruit.kind == red_fruit_sprite)
-      and 3 or 9
-    )
-    sfx(fruit.kind == red_fruit_sprite and red_eaten_sfx or golden_eaten_sfx)
+    score += 3
+    sfx(red_eaten_sfx)
     generate_fruit(5)
     -- The speed value is reduced at each tick by 0.5
     -- This way it is increased each 2 ticks
     -- Its value cannot go below 2
     if speed > 2 then speed -= 0.5 end
     add_tail=true
+  elseif golden_fruit and hit(head, golden_fruit) then
+    -- Golden fruits (sprite 3) grant 9 point
+    score += 9
+    sfx(1)
+    golden_fruit = nil
   end
   -- If a golden fruit is on the field,
   -- decreases its counter.
   -- When it reaches 0,
   -- a new fruit is generated
-  if golden_fruit_counter > 0 then
+  if golden_fruit then
     golden_fruit_counter -= 1
     if golden_fruit_counter == 0 then
-      generate_fruit(0)
+      golden_fruit = nil
       sfx(golden_expired_sfx)
     end
   end
@@ -384,7 +402,10 @@ function _draw()
     draw_snake()
     -- draw fruit
     if fruit then
-      spr(fruit.kind, fruit.x, fruit.y)
+      spr(red_fruit_sprite, fruit.x, fruit.y)
+    end
+    if golden_fruit then
+      spr(golden_fruit_sprite, golden_fruit.x, golden_fruit.y)
     end
     -- draw walls
     foreach (walls, function (wall)
