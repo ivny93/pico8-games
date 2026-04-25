@@ -11,9 +11,11 @@ function random_position()
     y=(flr(rnd(13)) + 1)*8
   }
 end
-function check_positions(pos)
+function tile_occupied(pos)
   -- Checks whether the generated position overlaps the snake or a wall
     if hit(pos, head) then return true end
+    if fruit and hit(pos, fruit) then return true end
+    if golden_fruit and hit(pos, golden_fruit) then return true end
     for i=1, #tail do
       if hit(pos, tail[i]) then return true end
     end
@@ -23,29 +25,78 @@ function check_positions(pos)
     return false 
 end
 
+function has_empty_space()
+  -- The gameboard grid is 15x16, for a total of 240 available tiles
+  -- If they're all occupied, no fruit should be generated
+  return #walls + #tail + 2 < 240
+end
+
+function in_gameboard(pos)
+  return pos.x >= gameboard.left
+    and pos.x <= gameboard.right
+    and pos.y >= gameboard.top
+    and pos.y <= gameboard.bottom
+end
+
+function find_free_space(center_pos)
+  -- Finds the first free position around the given center
+  -- Looks in the sorrounding 3x3 square,
+  -- then increases the size of the square until a free position is found
+  local k = 0
+  while true do
+    k += 8
+    local edge_size = (2 * k) - 8
+    local topleft = {x = center_pos.x - k, y = center_pos.y - k }
+    -- top border
+    for x = topleft.x, topleft.x + edge_size - 8, 8 do
+      local tile = { x = x, y = topleft.y }
+      if in_gameboard(tile) and not tile_occupied(tile) then return tile end
+    end
+    -- bottom border
+    for x = topleft.x, topleft.x + edge_size - 8, 8 do
+      local tile = { x = x, y = topleft.y + edge_size - 8 }
+      if in_gameboard(tile) and not tile_occupied(tile) then return tile end
+    end
+    -- left border
+    for y = topleft.y, topleft.y + edge_size - 8, 8 do
+      local tile = { x = topleft.x, y = y }
+      if in_gameboard(tile) and not tile_occupied(tile) then return tile end
+    end
+    -- left border
+    for y = topleft.y, topleft.y + edge_size - 8, 8 do
+      local tile = { x = topleft.x + edge_size - 8, y = y }
+      if in_gameboard(tile) and not tile_occupied(tile) then return tile end
+    end
+  end
+end 
+
 function generate_fruit(golden_chance)
-  local check_pos = function()
-    return check_positions(fruit) or (golden_fruit and hit(fruit, golden_fruit))
+  if not has_empty_space() then return end
+
+  fruit = nil
+  local new_fruit = random_position()
+  if tile_occupied(new_fruit) then
+    new_fruit = find_free_space(new_fruit)
   end
-  fruit = random_position()
-  while check_pos() do
-    fruit = random_position()
-  end
+  fruit = new_fruit
+
   if golden_chance > 0 then generate_golden_fruit(golden_chance) end
 end
 
 function generate_golden_fruit(chance)
+  if not has_empty_space() then return end
   if golden_fruit then return end -- There cannot be more than one golden fruit
 
   if chance > 0 and flr(rnd(chance)) == 0 then
     -- There's a 1 in 10 chance that a golden fruit is generated
     local check_pos = function()
-      return check_positions(golden_fruit) or hit(golden_fruit, fruit)
+      return tile_occupied(golden_fruit) or hit(golden_fruit, fruit)
     end
-    golden_fruit = random_position()
-    while check_pos() do
-      golden_fruit = random_position()
+    local new_golden_fruit = random_position()
+    if tile_occupied(new_golden_fruit) do
+      new_golden_fruit = find_free_space(new_golden_fruit)
     end
+    golden_fruit = new_golden_fruit
     golden_fruit_counter = 150 -- Roughly 5 seconds to get the golden fruit
   end
 end
@@ -145,7 +196,7 @@ function _init()
   }
 
   -- Game components
-  gameboard={left= 0, top=8, right=120, bottom=120}
+  gameboard = {left= 0, top=8, right=120, bottom=120}
   gameover = false
   in_game = false
   current_level = 0

@@ -2,7 +2,7 @@ pico-8 cartridge // http://www.pico-8.com
 version 43
 __lua__
 -- sn8
--- v1.2
+-- v1.3
 #include src/menu.lua
 #include src/sn8.lua
 __gfx__
