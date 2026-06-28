@@ -3,6 +3,8 @@ Collection of pico-8 games I made
 
 ## SN8
 
+![SN8](labels/sn8.png)
+
 https://www.lexaloffle.com/bbs/?tid=156344
 
 A rendition of the classic Snake 2 on Nokia!

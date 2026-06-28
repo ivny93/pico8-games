@@ -145,6 +145,11 @@ function init_game(level)
   generate_fruit(0)
 end
 
+function to_menu()
+  gameover = false
+  in_game = false
+end
+
 function reset_highscores()
   highscores = {0, 0, 0, 0}
   dset(0, 0)
@@ -209,7 +214,8 @@ function _init()
     highscores[3] = dget(2)
     highscores[4] = dget(3)
   end
-  menuitem(1, "reset highscores", reset_highscores)
+  menuitem(1, "return to menu", to_menu)
+  menuitem(2, "reset highscores", reset_highscores)
 end
 
 function copy_pos(source, dest)
