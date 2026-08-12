@@ -1,28 +1,34 @@
-function coordinates(x_, y_) return {x=x_, y=y_} end
-function size(w_, h_) return {w=w_, h=h_} end
+Rect = {
+    make = function(x_, y_, w_, h_)
+        local _rect = {
+            x = x_, y = y_,
+            width = w_, height = h_,
+        }
+        return _rect
+    end
+}
+
+-- bottom right positions are exclusive
+function right(rect) return rect.x + rect.width end
+function bottom(rect) return rect.y + rect.height end
+
+function horizontal_overlap(rect_a, rect_b)
+    return (rect_a.x >= rect_b.x and rect_a.x < right(rect_b))
+    or (rect_b.x >= rect_a.x and rect_b.x < right(rect_a))
+end
+function vertical_overlap(rect_a, rect_b)
+    return (rect_a.y >= rect_b.y and rect_a.y < bottom(rect_b))
+    or (rect_b.y >= rect_a.y and rect_b.y < bottom(rect_a))
+end
+function intersect(rect_a, rect_b)
+    return horizontal_overlap(rect_a, rect_b) and vertical_overlap(rect_a, rect_b)
+end
+
 Body = {
     make = function(x_, y_, w_, h_, s_)
-        local _body = {
-            pos = coordinates(x_, y_),
-            size = size(w_, h_),
-            speed = coordinates(0, 0),
-            sprite = s_
-        }
-
+        local _body = Rect.make(x_, y_, w_, h_)
+        _body.speed = {x = 0, y = 0}
+        _body.sprite = s_
         return _body
     end
 }
-function right(body) return body.pos.x + body.size.w - 1 end
-function bottom(body) return body.pos.y + body.size.h - 1 end
-
-function horizontal_overlap(body_a, body_b)
-    return (body_a.pos.x >= body_b.pos.x and body_a.pos.x <= right(body_b))
-    or (body_b.pos.x >= body_a.pos.x and body_b.pos.x <= right(body_a))
-end
-function vertical_overlap(body_a, body_b)
-    return (body_a.pos.y >= body_b.pos.y and body_a.pos.y <= bottom(body_b))
-    or (body_b.pos.y >= body_a.pos.y and body_b.pos.y <= bottom(body_a))
-end
-function intersect(body_a, body_b)
-    return horizontal_overlap(body_a, body_b) and vertical_overlap(body_a, body_b)
-end
