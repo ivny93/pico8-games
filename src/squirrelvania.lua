@@ -1,16 +1,17 @@
 function _init()
-    player = Body.make(0, 64, 8, 4, 0)
+    player = body_class.new(0, 64, 8, 4, 0)
     player.on_ground = false
     --player.speed.y = 1
-    camera = Body.make(-60, 0, 128, 128)
+    camera = body_class.new(-60, 0, 128, 128)
     world = {
-        Body.make(-1, 0, 1, 130), -- left limit
-        Body.make(200, 1, 1, 130), -- right limit
-        Body.make(0, 110, 210, 24), -- bottom limit
-        Body.make(32, 102, 8, 8, 1),
-        Body.make(96, 102, 8, 4, 1),
-        Body.make(120, 98, 8, 4, 1),
-        Body.make(148, 94, 8, 4, 1),
+        body_class.new(-1, 0, 1, 130), -- left limit
+        body_class.new(200, 1, 1, 130), -- right limit
+        body_class.new(0, 110, 210, 24), -- bottom limit
+        body_class.new(32, 102, 8, 8, 1),
+        body_class.new(96, 102, 8, 4, 1),
+        body_class.new(148, 94, 8, 4, 1),
+        body_class.new(116, 86, 8, 4, 1),
+        body_class.new(84, 78, 8, 4, 1),
     }
 end
 
@@ -36,7 +37,7 @@ function check_and_run_speed(body)
     end
 
     body.x += body.speed.x
-    
+
     if body.speed.y > 0 then
         fix_speed(horizontal_overlap, function (a, b) return b.y - bottom(a) end, "y")
     elseif body.speed.y < 0 then
@@ -59,7 +60,7 @@ end
 function _update()
     on_ground(player)
     if player.on_ground then
-        if btn(❎) then player.speed.y = -4 end
+        if btnp(❎) then player.speed.y = -4 end
         if btn(➡️) then player.speed.x = 2.0
         elseif btn(⬅️) then player.speed.x = -2.0
         else player.speed.x = 0.0 end

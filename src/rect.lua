@@ -1,10 +1,10 @@
-Rect = {
-    make = function(x_, y_, w_, h_)
-        local _rect = {
+rect_class = {
+    new = function(x_, y_, w_, h_)
+        local rect = {
             x = x_, y = y_,
             width = w_, height = h_,
         }
-        return _rect
+        return rect
     end
 }
 
@@ -24,11 +24,11 @@ function intersect(rect_a, rect_b)
     return horizontal_overlap(rect_a, rect_b) and vertical_overlap(rect_a, rect_b)
 end
 
-Body = {
-    make = function(x_, y_, w_, h_, s_)
-        local _body = Rect.make(x_, y_, w_, h_)
-        _body.speed = {x = 0, y = 0}
-        _body.sprite = s_
-        return _body
+body_class = {
+    new = function(x_, y_, w_, h_, s_)
+        local body = rect_class.new(x_, y_, w_, h_)
+        body.speed = {x = 0, y = 0}
+        body.sprite = s_
+        return body
     end
 }
