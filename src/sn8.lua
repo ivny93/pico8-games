@@ -158,6 +158,16 @@ function reset_highscores()
   dset(3, 0)
 end
 
+function switch_controls()
+  if turn_right_btn == ❎ then
+    turn_right_btn = 🅾️
+    turn_left_btn = ❎
+  else
+    turn_right_btn = ❎
+    turn_left_btn = 🅾️
+  end
+end
+
 function _init()
   -- Graphics definitions
   palt(0, false)
@@ -187,7 +197,7 @@ function _init()
   gameover_highscore_sfx = 3
   menu_button_sfx = 4
   golden_expired_sfx = 5
-  snake_turn_sfx = 6 
+  snake_turn_sfx = 6
 
   -- Menu
   menu = {
@@ -214,8 +224,15 @@ function _init()
     highscores[3] = dget(2)
     highscores[4] = dget(3)
   end
+
+  -- Controls
+  turn_right_btn = ❎
+  turn_left_btn = 🅾️
+
+  -- Options menu
   menuitem(1, "return to menu", to_menu)
-  menuitem(2, "reset highscores", reset_highscores)
+  menuitem(2, "switch o/x btns", switch_controls)
+  menuitem(3, "reset highscores", reset_highscores)
 end
 
 function copy_pos(source, dest)
@@ -225,6 +242,12 @@ end
 
 function is_highscore()
   return score > highscores[current_level]
+end
+
+function check_list_hit(body, elements)
+  for pos in all(elements) do
+    if hit(body, pos) then return true end
+  end
 end
 
 function update_game()
@@ -240,20 +263,49 @@ function update_game()
   if btn(⬅️) and tail[1].x >= head.x then
     snake_direction={x=-8, y=0}
     sfx(snake_turn_sfx)
-  end
   --    right
-  if btn(➡️) and tail[1].x <= head.x then
+  elseif btn(➡️) and tail[1].x <= head.x then
     snake_direction={x=8, y=0}
     sfx(snake_turn_sfx)
-  end
   --    up
-  if btn(⬆️) and tail[1].y >= head.y then
+  elseif btn(⬆️) and tail[1].y >= head.y then
     snake_direction={x=0, y=-8}
     sfx(snake_turn_sfx)
-  end
   --    down
-  if btn(⬇️) and tail[1].y <= head.y then
+  elseif btn(⬇️) and tail[1].y <= head.y then
     snake_direction={x=0, y=8}
+    sfx(snake_turn_sfx)
+  elseif btnp(turn_right_btn) then
+    -- Change direction, turn right
+    local new_dir = {
+      -- up:    Y neg
+      -- right: X pos
+      -- down:  Y pos
+      -- left:  X neg
+      x = snake_direction.x ~= 0 and 0 or (
+        snake_direction.y < 0 and 8 or -8
+      ),
+      y = snake_direction.y ~= 0 and 0 or (
+        snake_direction.x < 0 and -8 or 8
+      )
+    }
+    snake_direction = new_dir
+    sfx(snake_turn_sfx)
+  elseif btnp(turn_left_btn) then
+    -- Change direction, turn left
+    local new_dir = {
+      -- up:    Y neg
+      -- left:  X neg
+      -- down:  Y pos
+      -- right: X pos
+      x = snake_direction.x ~= 0 and 0 or (
+        snake_direction.y < 0 and -8 or 8
+      ),
+      y = snake_direction.y ~= 0 and 0 or (
+        snake_direction.x < 0 and 8 or -8
+      )
+    }
+    snake_direction = new_dir
     sfx(snake_turn_sfx)
   end
   -- update the position
@@ -286,18 +338,10 @@ function update_game()
   end
   -- check for gameover
   gameover = false
-  foreach(tail, function(pos)
-    if hit(head, pos) then
-      gameover = true
-      sfx(is_highscore() and gameover_highscore_sfx or gameover_sfx)
-    end
-  end)
-  foreach(walls, function(pos)
-    if hit(head, pos) then
-      gameover = true
-      sfx(is_highscore() and gameover_highscore_sfx or gameover_sfx)
-    end
-  end)
+  if check_list_hit(head, tail) or check_list_hit(head, walls) then
+    gameover = true
+    sfx(is_highscore() and gameover_highscore_sfx or gameover_sfx)
+  end
 
   -- fruit check
   if hit(head, fruit) then
