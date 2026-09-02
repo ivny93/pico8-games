@@ -341,6 +341,7 @@ function update_game()
   if check_list_hit(head, tail) or check_list_hit(head, walls) then
     gameover = true
     sfx(is_highscore() and gameover_highscore_sfx or gameover_sfx)
+    return
   end
 
   -- fruit check
@@ -395,21 +396,20 @@ function _update()
   end
 end
 
-function draw_snake()
+function is_left(pos, ref_pos)
+  return (pos.x == ref_pos.x - 8) or (pos.x == gameboard.right and ref_pos.x == gameboard.left)
+end
+function is_right(pos, ref_pos)
+  return (pos.x == ref_pos.x + 8) or (pos.x == gameboard.left and ref_pos.x == gameboard.right)
+end
+function is_up(pos, ref_pos)
+  return (pos.y == ref_pos.y - 8) or (pos.y == gameboard.bottom and ref_pos.y == gameboard.top)
+end
+function is_down(pos, ref_pos)
+  return (pos.y == ref_pos.y + 8) or (pos.y == gameboard.top and ref_pos.y == gameboard.bottom)
+end
 
-  local function is_left(pos, ref_pos)
-    return (pos.x == ref_pos.x - 8) or (pos.x == gameboard.right and ref_pos.x == gameboard.left)
-  end
-  local function is_right(pos, ref_pos)
-    return (pos.x == ref_pos.x + 8) or (pos.x == gameboard.left and ref_pos.x == gameboard.right)
-  end
-  local function is_up(pos, ref_pos)
-    return (pos.y == ref_pos.y - 8) or (pos.y == gameboard.bottom and ref_pos.y == gameboard.top)
-  end
-  local function is_down(pos, ref_pos)
-    return (pos.y == ref_pos.y + 8) or (pos.y == gameboard.top and ref_pos.y == gameboard.bottom)
-  end
-
+function draw_snake_head()
   -- Determines the head's orientation and draws it
   if is_left(head, tail[1]) then
     spr(snake_head_h_sprite, head.x, head.y) -- left
@@ -420,6 +420,10 @@ function draw_snake()
   elseif is_down(head, tail[1]) then
     spr(snake_head_v_sprite, head.x, head.y, 1, 1, false, true) -- down
   end
+end
+
+function draw_snake()
+  draw_snake_head()
 
   -- Determines each body block's orientation and draws it
   local function draw_snake_body(pos, prev_pos, next_pos)
@@ -493,9 +497,15 @@ function _draw()
   rectfill(header_rect.left, header_rect.top, header_rect.right, header_rect.bottom, header_color)
   
   if gameover then
+    draw_snake()
+    draw_snake_head() -- to cover the tail if it was bitten
+    rectfill(46, 40, 88, 60, 11) -- Print background
     print("gameover", 46, 40, 8)
     print("score: "..score, 46, 50, 1)
-    if is_highscore() then print("new highscore!", 36, 60, 8) end
+    if is_highscore() then
+      rectfill(36, 60, 89, 64, 11) -- Print background
+      print("new highscore!", 36, 60, 8)
+    end
   elseif in_game then
     -- print points
     print("score: "..score, 1, 1, 12)
