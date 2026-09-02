@@ -162,9 +162,11 @@ function switch_controls()
   if turn_right_btn == ❎ then
     turn_right_btn = 🅾️
     turn_left_btn = ❎
+    dset(4, 1)
   else
     turn_right_btn = ❎
     turn_left_btn = 🅾️
+    dset(4, 0)
   end
 end
 
@@ -226,8 +228,9 @@ function _init()
   end
 
   -- Controls
-  turn_right_btn = ❎
-  turn_left_btn = 🅾️
+  local controls_flag = dget(4)
+  turn_right_btn = (controls_flag == 0 and ❎ or 🅾️)
+  turn_left_btn = (controls_flag == 0 and 🅾️ or ❎)
 
   -- Options menu
   menuitem(1, "return to menu", to_menu)

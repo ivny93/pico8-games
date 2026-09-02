@@ -11,7 +11,7 @@ A rendition of the classic Snake 2 on Nokia!
 
 ### Controls:
 - ARROWS: move the snake
-- Z/X: Select the level on the main manu
+- O/X: Turn left/right. Select the level on the main menu
 
 ### Gameplay
 Eat the red fruits, avoid walls and your own tail.
