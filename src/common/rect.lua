@@ -23,12 +23,3 @@ end
 function intersect(rect_a, rect_b)
     return horizontal_overlap(rect_a, rect_b) and vertical_overlap(rect_a, rect_b)
 end
-
-body_class = {
-    new = function(x_, y_, w_, h_, s_)
-        local body = rect_class.new(x_, y_, w_, h_)
-        body.speed = {x = 0, y = 0}
-        body.sprite = s_
-        return body
-    end
-}

@@ -3,7 +3,8 @@ version 43
 __lua__
 -- Squirrelvania
 -- v 0.1
-#include src/rect.lua
+#include src/common/rect.lua
+#include src/common/body.lua
 #include src/squirrelvania.lua
 
 __gfx__

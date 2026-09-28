@@ -3,7 +3,7 @@ version 43
 __lua__
 -- sn8
 -- v1.3
-#include src/menu.lua
+#include src/common/menu.lua
 #include src/sn8.lua
 __gfx__
 bbbbbbbbbbbbbbbbbb33bbbbbbbb33bbbbbbbbbbb055550bbb1aa1bbbbb11bbbbbbbbbbbbb1aa1bbbbbbbbbb111111bbbb222bbbbbb222bbbbbbbbbbbbbbbbbb
